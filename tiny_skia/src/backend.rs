@@ -1,7 +1,7 @@
-use crate::core::{Background, Color, Gradient, Rectangle, Vector};
+use crate::core::{Background, Color, Gradient, Rectangle};
 use crate::graphics::backend;
 use crate::graphics::text;
-use crate::graphics::{Damage, Viewport};
+use crate::graphics::{Damage, Transformation, Viewport};
 use crate::primitive::{self, Primitive};
 
 use std::borrow::Cow;
@@ -104,7 +104,7 @@ impl Backend {
                     clip_mask,
                     region,
                     scale_factor,
-                    Vector::ZERO,
+                    Transformation::IDENTITY,
                 );
             }
 
@@ -144,7 +144,7 @@ impl Backend {
         clip_mask: &mut tiny_skia::Mask,
         clip_bounds: Rectangle,
         scale_factor: f32,
-        translation: Vector,
+        transformation: Transformation,
     ) {
         match primitive {
             Primitive::Quad {
@@ -154,7 +154,7 @@ impl Backend {
                 border_width,
                 border_color,
             } => {
-                let physical_bounds = (*bounds + translation) * scale_factor;
+                let physical_bounds = (*bounds * transformation) * scale_factor;
 
                 if !clip_bounds.intersects(&physical_bounds) {
                     return;
@@ -163,11 +163,8 @@ impl Backend {
                 let clip_mask = (!physical_bounds.is_within(&clip_bounds))
                     .then_some(clip_mask as &_);
 
-                let transform = tiny_skia::Transform::from_translate(
-                    translation.x,
-                    translation.y,
-                )
-                .post_scale(scale_factor, scale_factor);
+                let transform = into_transform(transformation)
+                    .post_scale(scale_factor, scale_factor);
 
                 // Make sure the border radius is not larger than the bounds
                 let border_width = border_width
@@ -365,7 +362,7 @@ impl Backend {
             } => {
                 let physical_bounds =
                     (Rectangle::new(*position, paragraph.min_bounds)
-                        + translation)
+                        * transformation)
                         * scale_factor;
 
                 if !clip_bounds.intersects(&physical_bounds) {
@@ -377,7 +374,7 @@ impl Backend {
 
                 self.text_pipeline.draw_paragraph(
                     paragraph,
-                    *position + translation,
+                    *position * transformation,
                     *color,
                     scale_factor,
                     pixels,
@@ -396,7 +393,7 @@ impl Backend {
                 shaping,
             } => {
                 let physical_bounds =
-                    (primitive.bounds() + translation) * scale_factor;
+                    (primitive.bounds() * transformation) * scale_factor;
 
                 if !clip_bounds.intersects(&physical_bounds) {
                     return;
@@ -407,7 +404,7 @@ impl Backend {
 
                 self.text_pipeline.draw_cached(
                     content,
-                    *bounds + translation,
+                    *bounds * transformation,
                     *color,
                     *size,
                     *line_height,
@@ -422,7 +419,7 @@ impl Backend {
             }
             #[cfg(feature = "image")]
             Primitive::Image { handle, bounds } => {
-                let physical_bounds = (*bounds + translation) * scale_factor;
+                let physical_bounds = (*bounds * transformation) * scale_factor;
 
                 if !clip_bounds.intersects(&physical_bounds) {
                     return;
@@ -431,11 +428,8 @@ impl Backend {
                 let clip_mask = (!physical_bounds.is_within(&clip_bounds))
                     .then_some(clip_mask as &_);
 
-                let transform = tiny_skia::Transform::from_translate(
-                    translation.x,
-                    translation.y,
-                )
-                .post_scale(scale_factor, scale_factor);
+                let transform = into_transform(transformation)
+                    .post_scale(scale_factor, scale_factor);
 
                 self.raster_pipeline
                     .draw(handle, *bounds, pixels, transform, clip_mask);
@@ -452,7 +446,7 @@ impl Backend {
                 bounds,
                 color,
             } => {
-                let physical_bounds = (*bounds + translation) * scale_factor;
+                let physical_bounds = (*bounds * transformation) * scale_factor;
 
                 if !clip_bounds.intersects(&physical_bounds) {
                     return;
@@ -464,7 +458,7 @@ impl Backend {
                 self.vector_pipeline.draw(
                     handle,
                     *color,
-                    (*bounds + translation) * scale_factor,
+                    (*bounds * transformation) * scale_factor,
                     pixels,
                     clip_mask,
                 );
@@ -488,7 +482,7 @@ impl Backend {
                     y: bounds.y(),
                     width: bounds.width(),
                     height: bounds.height(),
-                } + translation)
+                } * transformation)
                     * scale_factor;
 
                 if !clip_bounds.intersects(&physical_bounds) {
@@ -503,7 +497,7 @@ impl Backend {
                     paint,
                     *rule,
                     transform
-                        .post_translate(translation.x, translation.y)
+                        .post_concat(into_transform(transformation))
                         .post_scale(scale_factor, scale_factor),
                     clip_mask,
                 );
@@ -521,7 +515,7 @@ impl Backend {
                     y: bounds.y(),
                     width: bounds.width(),
                     height: bounds.height(),
-                } + translation)
+                } * transformation)
                     * scale_factor;
 
                 if !clip_bounds.intersects(&physical_bounds) {
@@ -536,7 +530,7 @@ impl Backend {
                     paint,
                     stroke,
                     transform
-                        .post_translate(translation.x, translation.y)
+                        .post_concat(into_transform(transformation))
                         .post_scale(scale_factor, scale_factor),
                     clip_mask,
                 );
@@ -549,12 +543,12 @@ impl Backend {
                         clip_mask,
                         clip_bounds,
                         scale_factor,
-                        translation,
+                        transformation,
                     );
                 }
             }
-            Primitive::Translate {
-                translation: offset,
+            Primitive::Transform {
+                transformation: new_transformation,
                 content,
             } => {
                 self.draw_primitive(
@@ -563,11 +557,11 @@ impl Backend {
                     clip_mask,
                     clip_bounds,
                     scale_factor,
-                    translation + *offset,
+                    transformation * *new_transformation,
                 );
             }
             Primitive::Clip { bounds, content } => {
-                let bounds = (*bounds + translation) * scale_factor;
+                let bounds = (*bounds * transformation) * scale_factor;
 
                 if bounds == clip_bounds {
                     self.draw_primitive(
@@ -576,7 +570,7 @@ impl Backend {
                         clip_mask,
                         bounds,
                         scale_factor,
-                        translation,
+                        transformation,
                     );
                 } else if let Some(bounds) = clip_bounds.intersection(&bounds) {
                     if bounds.x + bounds.width <= 0.0
@@ -597,7 +591,7 @@ impl Backend {
                         clip_mask,
                         bounds,
                         scale_factor,
-                        translation,
+                        transformation,
                     );
 
                     adjust_clip_mask(clip_mask, clip_bounds);
@@ -610,7 +604,7 @@ impl Backend {
                     clip_mask,
                     clip_bounds,
                     scale_factor,
-                    translation,
+                    transformation,
                 );
             }
         }
@@ -626,6 +620,17 @@ impl Default for Backend {
 fn into_color(color: Color) -> tiny_skia::Color {
     tiny_skia::Color::from_rgba(color.b, color.g, color.r, color.a)
         .expect("Convert color from iced to tiny_skia")
+}
+
+fn into_transform(transformation: Transformation) -> tiny_skia::Transform {
+    tiny_skia::Transform {
+        sx: transformation.scale_x(),
+        kx: 0.0,
+        ky: 0.0,
+        sy: transformation.scale_y(),
+        tx: transformation.translation_x(),
+        ty: transformation.translation_y(),
+    }
 }
 
 fn rounded_rectangle(

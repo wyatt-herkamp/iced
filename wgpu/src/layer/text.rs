@@ -10,6 +10,7 @@ pub enum Text<'a> {
         paragraph: paragraph::Weak,
         position: Point,
         color: Color,
+        scale: f32,
     },
     Cached(Cached<'a>),
 }
