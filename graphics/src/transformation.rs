@@ -25,17 +25,13 @@ impl Transformation {
         Transformation(Mat4::from_translation(Vec3::new(x, y, 0.0)))
     }
 
-    /// Creates a scale transformation.
-    pub fn scale(x: f32, y: f32) -> Transformation {
-        Transformation(Mat4::from_scale(Vec3::new(x, y, 1.0)))
+    /// Creates a uniform scaling transformation.
+    pub fn scale(scaling: f32) -> Transformation {
+        Transformation(Mat4::from_scale(Vec3::new(scaling, scaling, 1.0)))
     }
 
-    pub fn scale_x(&self) -> f32 {
+    pub fn scale_factor(&self) -> f32 {
         self.0.x_axis.x
-    }
-
-    pub fn scale_y(&self) -> f32 {
-        self.0.y_axis.y
     }
 
     pub fn translation_x(&self) -> f32 {

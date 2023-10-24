@@ -142,8 +142,8 @@ impl Backend {
             }
 
             if !layer.meshes.is_empty() {
-                let scaled = transformation
-                    * Transformation::scale(scale_factor, scale_factor);
+                let scaled =
+                    transformation * Transformation::scale(scale_factor);
 
                 self.triangle_pipeline.prepare(
                     device,
@@ -156,8 +156,8 @@ impl Backend {
             #[cfg(any(feature = "image", feature = "svg"))]
             {
                 if !layer.images.is_empty() {
-                    let scaled = transformation
-                        * Transformation::scale(scale_factor, scale_factor);
+                    let scaled =
+                        transformation * Transformation::scale(scale_factor);
 
                     self.image_pipeline.prepare(
                         device,
