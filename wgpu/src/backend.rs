@@ -1,8 +1,8 @@
-use crate::core::{Color, Size};
+use crate::core::{Color, Size, Transformation};
 use crate::graphics;
 use crate::graphics::backend;
 use crate::graphics::color;
-use crate::graphics::{Transformation, Viewport};
+use crate::graphics::Viewport;
 use crate::primitive::{self, Primitive};
 use crate::quad;
 use crate::text;

@@ -25,7 +25,6 @@ iced_core.workspace = true
 
 bitflags.workspace = true
 bytemuck.workspace = true
-glam.workspace = true
 half.workspace = true
 log.workspace = true
 raw-window-handle.workspace = true

@@ -3,9 +3,10 @@ use crate::core::alignment;
 use crate::core::image;
 use crate::core::svg;
 use crate::core::text;
-use crate::core::{Background, Color, Font, Pixels, Point, Rectangle, Vector};
+use crate::core::{
+    Background, Color, Font, Pixels, Point, Rectangle, Transformation, Vector,
+};
 use crate::text::paragraph;
-use crate::Transformation;
 
 use std::sync::Arc;
 

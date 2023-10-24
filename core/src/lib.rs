@@ -48,6 +48,7 @@ mod point;
 mod rectangle;
 mod shell;
 mod size;
+mod transformation;
 mod vector;
 
 pub use alignment::Alignment;
@@ -73,5 +74,6 @@ pub use renderer::Renderer;
 pub use shell::Shell;
 pub use size::Size;
 pub use text::Text;
+pub use transformation::Transformation;
 pub use vector::Vector;
 pub use widget::Widget;

@@ -20,7 +20,7 @@ pub use geometry::Geometry;
 use crate::core::renderer;
 use crate::core::text::{self, Text};
 use crate::core::{
-    Background, Color, Font, Pixels, Point, Rectangle, Size, Vector,
+    Background, Color, Font, Pixels, Point, Rectangle, Size, Transformation,
 };
 use crate::graphics::text::Paragraph;
 use crate::graphics::Mesh;
@@ -97,20 +97,20 @@ impl<T> core::Renderer for Renderer<T> {
         }
     }
 
-    fn with_translation(
+    fn with_transformation(
         &mut self,
-        translation: Vector,
+        transformation: Transformation,
         f: impl FnOnce(&mut Self),
     ) {
         match self {
             Self::TinySkia(renderer) => {
-                let primitives = renderer.start_translation();
+                let primitives = renderer.start_transformation();
 
                 f(self);
 
                 match self {
                     Self::TinySkia(renderer) => {
-                        renderer.end_translation(primitives, translation);
+                        renderer.end_transformation(primitives, transformation);
                     }
                     #[cfg(feature = "wgpu")]
                     _ => unreachable!(),
@@ -118,14 +118,14 @@ impl<T> core::Renderer for Renderer<T> {
             }
             #[cfg(feature = "wgpu")]
             Self::Wgpu(renderer) => {
-                let primitives = renderer.start_translation();
+                let primitives = renderer.start_transformation();
 
                 f(self);
 
                 match self {
                     #[cfg(feature = "wgpu")]
                     Self::Wgpu(renderer) => {
-                        renderer.end_translation(primitives, translation);
+                        renderer.end_transformation(primitives, transformation);
                     }
                     _ => unreachable!(),
                 }

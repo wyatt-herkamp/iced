@@ -1,5 +1,5 @@
 use crate::core::alignment;
-use crate::core::{Rectangle, Size};
+use crate::core::{Rectangle, Size, Transformation};
 use crate::graphics::color;
 use crate::graphics::text::cache::{self, Cache};
 use crate::graphics::text::{FontSystem, Paragraph};
@@ -117,12 +117,12 @@ impl Pipeline {
                     horizontal_alignment,
                     vertical_alignment,
                     color,
-                    scale,
+                    transformation,
                 ) = match section {
                     Text::Managed {
                         position,
                         color,
-                        scale,
+                        transformation,
                         ..
                     } => {
                         use crate::core::text::Paragraph as _;
@@ -138,7 +138,7 @@ impl Pipeline {
                             paragraph.horizontal_alignment(),
                             paragraph.vertical_alignment(),
                             *color,
-                            *scale,
+                            *transformation,
                         )
                     }
                     Text::Cached(text) => {
@@ -157,12 +157,12 @@ impl Pipeline {
                             text.horizontal_alignment,
                             text.vertical_alignment,
                             text.color,
-                            1.0,
+                            Transformation::IDENTITY,
                         )
                     }
                 };
 
-                let bounds = bounds * scale_factor;
+                let bounds = bounds * transformation * scale_factor;
 
                 let left = match horizontal_alignment {
                     alignment::Horizontal::Left => bounds.x,
@@ -192,7 +192,7 @@ impl Pipeline {
                     buffer,
                     left,
                     top,
-                    scale: scale * scale_factor,
+                    scale: scale_factor * transformation.scale_factor(),
                     bounds: glyphon::TextBounds {
                         left: clip_bounds.x as i32,
                         top: clip_bounds.y as i32,

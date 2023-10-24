@@ -1,7 +1,7 @@
-use crate::core::{Background, Color, Gradient, Rectangle};
+use crate::core::{Background, Color, Gradient, Rectangle, Transformation};
 use crate::graphics::backend;
 use crate::graphics::text;
-use crate::graphics::{Damage, Transformation, Viewport};
+use crate::graphics::{Damage, Viewport};
 use crate::primitive::{self, Primitive};
 
 use std::borrow::Cow;
@@ -374,11 +374,12 @@ impl Backend {
 
                 self.text_pipeline.draw_paragraph(
                     paragraph,
-                    *position * transformation,
+                    *position,
                     *color,
-                    scale_factor * transformation.scale_factor(),
+                    scale_factor,
                     pixels,
                     clip_mask,
+                    transformation,
                 );
             }
             Primitive::Text {
@@ -623,13 +624,15 @@ fn into_color(color: Color) -> tiny_skia::Color {
 }
 
 fn into_transform(transformation: Transformation) -> tiny_skia::Transform {
+    let translation = transformation.translation();
+
     tiny_skia::Transform {
         sx: transformation.scale_factor(),
         kx: 0.0,
         ky: 0.0,
         sy: transformation.scale_factor(),
-        tx: transformation.translation_x(),
-        ty: transformation.translation_y(),
+        tx: translation.x,
+        ty: translation.y,
     }
 }
 

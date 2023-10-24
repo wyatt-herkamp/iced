@@ -7,7 +7,6 @@ pub use event::Event;
 pub use program::Program;
 
 pub use crate::graphics::geometry::*;
-pub use crate::graphics::Transformation;
 pub use crate::renderer::geometry::*;
 
 use crate::core;
@@ -15,8 +14,9 @@ use crate::core::layout::{self, Layout};
 use crate::core::mouse;
 use crate::core::renderer;
 use crate::core::widget::tree::{self, Tree};
-use crate::core::{Clipboard, Element, Shell, Widget};
-use crate::core::{Length, Rectangle, Size, Vector};
+use crate::core::{
+    Clipboard, Element, Length, Rectangle, Shell, Size, Transformation, Widget,
+};
 use crate::graphics::geometry;
 
 use std::marker::PhantomData;
@@ -210,8 +210,8 @@ where
 
         let state = tree.state.downcast_ref::<P::State>();
 
-        renderer.with_translation(
-            Vector::new(bounds.x, bounds.y),
+        renderer.with_transformation(
+            Transformation::translate(bounds.x, bounds.y),
             |renderer| {
                 renderer.draw(
                     self.program.draw(state, renderer, theme, bounds, cursor),

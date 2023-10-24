@@ -185,7 +185,8 @@ pub use crate::core::alignment;
 pub use crate::core::gradient;
 pub use crate::core::{
     color, Alignment, Background, BorderRadius, Color, ContentFit, Degrees,
-    Gradient, Length, Padding, Pixels, Point, Radians, Rectangle, Size, Vector,
+    Gradient, Length, Padding, Pixels, Point, Radians, Rectangle, Size,
+    Transformation, Vector,
 };
 pub use crate::runtime::Command;
 

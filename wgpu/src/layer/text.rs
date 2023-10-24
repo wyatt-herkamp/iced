@@ -1,6 +1,6 @@
 use crate::core::alignment;
 use crate::core::text;
-use crate::core::{Color, Font, Pixels, Point, Rectangle};
+use crate::core::{Color, Font, Pixels, Point, Rectangle, Transformation};
 use crate::graphics::text::paragraph;
 
 /// A paragraph of text.
@@ -10,7 +10,7 @@ pub enum Text<'a> {
         paragraph: paragraph::Weak,
         position: Point,
         color: Color,
-        scale: f32,
+        transformation: Transformation,
     },
     Cached(Cached<'a>),
 }
