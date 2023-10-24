@@ -117,9 +117,13 @@ impl Pipeline {
                     horizontal_alignment,
                     vertical_alignment,
                     color,
+                    scale,
                 ) = match section {
                     Text::Managed {
-                        position, color, ..
+                        position,
+                        color,
+                        scale,
+                        ..
                     } => {
                         use crate::core::text::Paragraph as _;
 
@@ -134,6 +138,7 @@ impl Pipeline {
                             paragraph.horizontal_alignment(),
                             paragraph.vertical_alignment(),
                             *color,
+                            *scale,
                         )
                     }
                     Text::Cached(text) => {
@@ -152,6 +157,7 @@ impl Pipeline {
                             text.horizontal_alignment,
                             text.vertical_alignment,
                             text.color,
+                            1.0,
                         )
                     }
                 };
@@ -186,7 +192,7 @@ impl Pipeline {
                     buffer,
                     left,
                     top,
-                    scale: scale_factor,
+                    scale: scale * scale_factor,
                     bounds: glyphon::TextBounds {
                         left: clip_bounds.x as i32,
                         top: clip_bounds.y as i32,
